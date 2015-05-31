@@ -1,0 +1,1 @@
+var sizes = require('../index?sizes[]=200w,sizes[]=400w,sizes[]=900w!./sf.jpg');

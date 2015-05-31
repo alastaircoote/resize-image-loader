@@ -1,0 +1,30 @@
+{
+  "name": "resize-image-loader",
+  "version": "0.0.1",
+  "description": "Responsive image loader for webpack",
+  "author": "Puppybits @puppybits",
+  "keywords": "webpack image resize responsive adaptive",
+  "scripts": {
+    "test": "webpack --config test/webpack.config.js"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/mit-license.php"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:LevelMoney/resize-image-loader.git"
+  },
+  "dependencies": {
+    "loader-utils": "^0.2.6"
+  },
+  "peerDependencies": {
+    "gm": "*",
+    "file-loader": "*"
+  },
+  "devDependencies": {
+    "webpack": "^1.7.3"
+  }
+}
