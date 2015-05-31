@@ -22,22 +22,12 @@ $ npm install resize-image-loader --save-dev
 Sizes are specific per image. This loader should be set per file in the require in your javascript source file.
 
 ``` javascript
-
-```
-
-
-### options
-
-#### size 
-
-Type: `array of widths for the image`  
-
-``` javascript
-var img = require('resize-image-loader?sizes[]=200w,sizes[]=900w./myImage.jpg');
+var imgset = require('resize-image?sizes[]=200w,sizes[]=900w!./myImage.jpg');
+var img = require('./myImage.jpg')
 ...
 render(){
   return <img 
-    srcset="myImage-200w.jpg 200w, myImage-900w.jpg 900w," 
+    srcset={imgset} 
     src={img} 
     sizes="200w,900w" />
 }

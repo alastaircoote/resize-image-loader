@@ -1,7 +1,6 @@
 var gm = require('gm').subClass({ imageMagick: true });
 var loaderUtils = require('loader-utils');
 
-
 module.exports = function(content) {
   var idx = this.loaderIndex;
   var query = (this.query !== '' ? this.query: this.loaders[0].query);
@@ -50,7 +49,7 @@ module.exports = function(content) {
           
           count++;
           if (count >= files.length){
-            callback(null, content);  
+            callback(null, "module.exports = \""+imgset+"\"");  
             called = true;
           }    
       });
