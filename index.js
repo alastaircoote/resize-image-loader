@@ -1,11 +1,16 @@
 var gm = require('gm').subClass({ imageMagick: true });
+var fs = require('fs');
 var loaderUtils = require('loader-utils');
 
 module.exports = function(content) {
   var idx = this.loaderIndex;
-  var query = (this.query !== '' ? this.query: this.loaders[0].query);
+
+  // ignore content from previous loader because it could be datauri
+  content = fs.readFileSync(this.resourcePath);
+
+  var query = (this.query !== '' ? this.query : this.loaders[0].query);
   query = loaderUtils.parseQuery(query);
-  if (!query.sizes) throw new Error("image-resize-loader requires a sizes argument. (ie sizes[]=200w)");
+  if (!query.sizes) query = {sizes:['320w','960w','2048w']};
   
   if (!Array.isArray(query.sizes)) {
     query.sizes = [sizes];
