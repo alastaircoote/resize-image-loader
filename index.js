@@ -1,4 +1,5 @@
 var gm = require('gm').subClass({ imageMagick: true });
+var Datauri = require('datauri');
 var fs = require('fs');
 var loaderUtils = require('loader-utils');
 
@@ -10,7 +11,10 @@ module.exports = function(content) {
 
   var query = (this.query !== '' ? this.query : this.loaders[0].query);
   query = loaderUtils.parseQuery(query);
-  if (!query.sizes) query = {sizes:['320w','960w','2048w']};
+
+  if (!query.sizes && !query.placeholder) {
+    query = {sizes:['320w','960w','2048w']};
+  }
   
   if (!Array.isArray(query.sizes)) {
     query.sizes = [sizes];
@@ -39,26 +43,48 @@ module.exports = function(content) {
     var imgset = files.map(function(file, i){
       return file + ' ' + sizes[i] + ' ';
     }).join(',');
-    
-    var count = 0;
-    var images = [];
-    sizes.map(function(size, i){
-      size = parseInt(size);
+
+    if (query.placeholder){
+      query.placeholder = (query.placeholder > 5 ? query.placeholder : 200);
+      if (!query.blur) {
+        query.blur = 10;
+      }
       gm(content)
-        .resize(size)
+        .resize(Math.max(query.placeholder, 20))
         .toBuffer(ext, function(err, buf){
           if (buf){
-            images[i] = buf;
-            emitFile(files[i], buf);
-          }
-          
-          count++;
-          if (count >= files.length){
-            callback(null, "module.exports = \""+imgset+"\"");  
+            var uri = new Datauri().format('.'+ext, buf).content;
+            var blur =  "<svg xmlns='http://www.w3.org/2000/svg' width='100%' viewBox='0 0 512 512'>" + 
+                          "<defs><filter id='puppybits'><feGaussianBlur stdDeviation='"+query.blur+"'/></filter></defs>" +
+                          "<image width='100%' height='100%' xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='" + uri + "' filter='url(#puppybits)'></image>" +
+                        "</svg>";
+            var micro = new Datauri().format('.svg', new Buffer(blur, 'utf8')).content;
+                        
+            callback(null, "module.exports = \""+micro+"\"");  
             called = true;
-          }    
+          }
       });
-    });
+    } else /* return srcset*/ {
+      var count = 0;
+      var images = [];
+      sizes.map(function(size, i){
+        size = parseInt(size);
+        gm(content)
+          .resize(size)
+          .toBuffer(ext, function(err, buf){
+            if (buf){
+              images[i] = buf;
+              emitFile(files[i], buf);
+            }
+            
+            count++;
+            if (count >= files.length){
+              callback(null, "module.exports = \""+imgset+"\"");  
+              called = true;
+            }    
+        });
+      });
+    }
   }
 };
 

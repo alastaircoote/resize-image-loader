@@ -18,6 +18,8 @@
     "url": "git@github.com:LevelMoney/resize-image-loader.git"
   },
   "dependencies": {
+    "datauri": "^0.7.1",
+    "file-loader": "^0.8.4",
     "loader-utils": "^0.2.6"
   },
   "peerDependencies": {
