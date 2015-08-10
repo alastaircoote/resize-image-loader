@@ -1,12 +1,8 @@
 # resize-image-loader
 
-**Images account for 58%[1][image-stats] of the page. Hyper optimize your images to have massive improvement page load times.**
+**Images account for 58%<sup>[1][image-stats]</sup> of web pages. Hyper optimize your images to have massive improvement page load times.**
 
-Create responsive images with webpack. Load the most effectent image for the user's device. Improve page load times and reduce the cost for the user[2][cost-site].
-
-> Creates responsive images with [gm](http://aheckmann.github.io/gm/)
-
-* To minify images use the [webpack-image-loader]()
+Creates responsive images with webpack and [gm](http://aheckmann.github.io/gm/) so only the most effecient image is downloaded for the user's device. This will improve page load times and time to first render while reducing the cost for the user<sup>[2][cost-site]</sup>.
 
 ## Basic Usage
 
@@ -30,7 +26,7 @@ render(){
 
 ## Advanced Usage
 
-Optionally you make a placeholder image. Placeholder images are tiny images that are inlined and blurred. This delivers a fully rendered experince to the user as quick as possible without empty boxes or jumpy re-layouts. 
+Optionally you make also create a placeholder image. Placeholder images are tiny images that are inlined and blurred until the hi-res image is loaded. This delivers a fully rendered experince to the user as quick as possible without empty boxes or jumpy reflow/layouts. 
 
 The code below has one `img` using the placeholder image, which is inlined as a datauri. This will load right away and take up minimal space on the inital download. The second image is the normal image. The user's browser will choose which image is optimal and download that one instead of the src (on newer browsers). Once the full image loads, it will trigger a state change and have an animated a fade between the blured placeholder image and the real hi-res image.
 
@@ -62,12 +58,19 @@ render(){
 
 *placeholder* options.  
 
-`placeholder=<image-width>` default _200_
-`blur=<gaussian-blur-amount>` default _10_
+`placeholder=<image-width>` default _200_  
+`blur=<gaussian-blur-amount>` default _10_  
+
+* To also compress images combine [resize-image-loader](https://github.com/Levelmoney/resize-image-loader) with the [image-webpack-loader](https://github.com/tcoopman/image-webpack-loader)
+```
+var imgset = require('image-webpack!resize-image?sizes[]=200w,sizes[]=900w!./myImage.jpg');
+var img = require('image-webpack!./myImage.jpg')
+```
+
 
 ## Installation
 
-* Install ImageMagick before installing the resize-imageloader
+* Install ImageMagick before installing the resize-image-loader
 
 ```sh
 $ brew install ImageMagick // for mac
@@ -79,5 +82,5 @@ $ npm install resize-image-loader --save-dev
 
 MIT (http://www.opensource.org/licenses/mit-license.php)
 
-[image-stats][http://royal.pingdom.com/2011/11/21/web-pages-getting-bloated-here-is-why/]
-[cost-site][http://whatdoesmysitecost.com/]
+[image-stats]: http://royal.pingdom.com/2011/11/21/web-pages-getting-bloated-here-is-why/
+[cost-site]: http://whatdoesmysitecost.com/
