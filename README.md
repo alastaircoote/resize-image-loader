@@ -2,15 +2,13 @@
 
 **Images account for 58%<sup>[1][image-stats]</sup> of web pages. Hyper optimize your images to have massive improvement page load times.**
 
-Creates responsive images with webpack and [gm](http://aheckmann.github.io/gm/) so only the most effecient image is downloaded for the user's device. This will improve page load times and time to first render while reducing the cost for the user<sup>[2][cost-site]</sup>.
+Resize-image-loader will create responsive images using webpack and [gm](http://aheckmann.github.io/gm/) so only the most effecient image is downloaded for the user's device. Modern browser have an additional attibute on the `img` tag called `srcset`. If `srcset` is supported the browser will use the device's screensize and pixel density to determine the best image to download. Older browsers will default back to the normal `src` image.  This will greatly improve page load times and time to first render while reducing the cost for the user<sup>[2][cost-site]</sup>.
 
 ## Basic Usage
 
 [Documentation: Using loaders](http://webpack.github.io/docs/using-loaders.html)
 
-Use the sizes param to set all the desired widths. The loader will return the proper format for the `<img srcset>` property (including any file name changes for long term caching). This loader need to be set in the javascript source.
-
-IMPORTANT: Make sure to add the `sizes` property to the `img` tag manually.
+Use the sizes param of the resize-image-loader to set all the desired widths. The loader creates the various sized images and return the proper formated result for the `<img srcset>` property (including any file name changes for long term caching). This loader need to be set in the javascript source, not the webpack config file.
 
 ``` javascript
 var imgset = require('resize-image?sizes[]=200w,sizes[]=900w!./myImage.jpg');
@@ -20,15 +18,15 @@ render(){
   return <img 
     srcset={imgset} 
     src={img} 
-    sizes="200w,900w" />
+    sizes="200w,900w" /> {/* Make sure to add the sizes manually as well. */}
 }
 ```
 
 ## Advanced Usage
 
-Optionally you make also create a placeholder image. Placeholder images are tiny images that are inlined and blurred until the hi-res image is loaded. This delivers a fully rendered experince to the user as quick as possible without empty boxes or jumpy reflow/layouts. 
+Optionally you make also create a placeholder image. Placeholder images are tiny images that are inlined and blurred until the hi-res image is loaded. This delivers a fully rendered experince to the user as quick as possible without empty boxes or jumpy reflow/layouts. [See facebook's write up for futher details.](https://code.facebook.com/posts/991252547593574/the-technology-behind-preview-photos)
 
-The code below has one `img` using the placeholder image, which is inlined as a datauri. This will load right away and take up minimal space on the inital download. The second image is the normal image. The user's browser will choose which image is optimal and download that one instead of the src (on newer browsers). Once the full image loads, it will trigger a state change and have an animated a fade between the blured placeholder image and the real hi-res image.
+The code below has one `img` using the placeholder image, which is inlined as a datauri. This will load right away and take up minimal space on the inital download (generally < 5Kb). The second image is the normal image. The user's browser will then choose the optimal image and download that one instead of the src. Once the full image loads, the onLoad handler will trigger a state change and have an animated cross fade between the blured placeholder image and the real hi-res image.
 
 ``` javascript
 var imgset = require('resize-image?sizes[]=200w,sizes[]=900w!./myImage.jpg');
