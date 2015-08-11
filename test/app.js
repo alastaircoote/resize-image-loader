@@ -1,22 +1,31 @@
-function img(src, srcset) {
-  var i = document.createElement("img");
-  i.setAttribute('src', src);
-  if (srcset){
-    i.setAttribute('srcset', srcset);
-  }
-  document.body.appendChild(i);
+
+var src = './sf.jpg', 
+ srcset = require('../index?sizes[]=200w,sizes[]=400w,sizes[]=900w!./sf.jpg');
+ blur = require('../index?placeholder=50!./sf.jpg');
+
+var j = document.createElement("img");
+j.setAttribute('src', blur);
+j.style.position = "absolute"
+j.style.top = 0;
+j.style.left = 0;
+j.style.transition = "opacity 5s";
+j.style.width = '100%';
+j.id = 'placeholder';
+document.body.appendChild(j);
+
+
+var i = document.createElement("img");
+i.setAttribute('src', src);
+i.style.position = "absolute"
+i.style.top = 0;
+i.style.left = 0;
+i.style.transition = "opacity 2s";
+i.style.width = '100%'
+i.style.opacity = 0;
+i.setAttribute('srcset', srcset);
+i.onload = function(){
+  i.style.opacity = 1;
+  j.style.opacity = 0;
 }
-function p(inner){
-  var p = document.createElement("p");
-  p.innerHTML = inner;
-  document.body.appendChild(p);
-}
+document.body.appendChild(i);
 
-p('Create multiple images and the browser will load the right one for the screen size & density.');
-img('./sf.jpg', require('../index?sizes[]=200w,sizes[]=400w,sizes[]=900w!./sf.jpg'));
-
-p('Optionally create a small datauri placeholder image first.');
-img(require('../index?placeholder=50!./sf.jpg'));
-
-p('Adjust the size and blur of the placeholder image.');
-img(require('../index?placeholder=500&blur=3!./sf.jpg'));

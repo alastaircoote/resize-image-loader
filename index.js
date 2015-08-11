@@ -47,19 +47,20 @@ module.exports = function(content) {
     if (query.placeholder){
       query.placeholder = (query.placeholder > 5 ? query.placeholder : 200);
       if (!query.blur) {
-        query.blur = 10;
+        query.blur = 40;
       }
+      var size = null;
       gm(content)
+        .size(function(err, _size){ size = _size; })
         .resize(Math.max(query.placeholder, 20))
         .toBuffer(ext, function(err, buf){
           if (buf){
             var uri = new Datauri().format('.'+ext, buf).content;
-            var blur =  "<svg xmlns='http://www.w3.org/2000/svg' width='100%' viewBox='0 0 512 512'>" + 
+            var blur =  "<svg xmlns='http://www.w3.org/2000/svg' width='100%' viewBox='0 0 "+size.width+" "+size.height+"'>" + 
                           "<defs><filter id='puppybits'><feGaussianBlur stdDeviation='"+query.blur+"'/></filter></defs>" +
                           "<image width='100%' height='100%' xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='" + uri + "' filter='url(#puppybits)'></image>" +
                         "</svg>";
-            var micro = new Datauri().format('.svg', new Buffer(blur, 'utf8')).content;
-                        
+            var micro = new Datauri().format('.svg', new Buffer(blur, 'utf8')).content; 
             callback(null, "module.exports = \""+micro+"\"");  
             called = true;
           }
