@@ -11,7 +11,7 @@ Check out the test folder for a sample use case. Below is the render times with 
 | image size | time to render on 3G connection |
 | ------------- | ------------- |
 | placeholder image (inlined & blurred) | 300 ms |
-| 900 px width image (resized & optimized srcset) | 5,00 ms |
+| 900 px width image (resized & optimized srcset) | 5,000 ms |
 | regular image | 24,000 ms |
 
 
