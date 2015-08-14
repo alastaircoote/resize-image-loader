@@ -1,7 +1,7 @@
 
 var src = './sf.jpg', 
  srcset = require('../index?sizes[]=200w,sizes[]=400w,sizes[]=900w!./sf.jpg');
- blur = require('../index?placeholder=50!./sf.jpg');
+ blur = require('../index?placeholder!./sf.jpg');
 
 var j = document.createElement("img");
 j.setAttribute('src', blur);
@@ -28,4 +28,3 @@ i.onload = function(){
   j.style.opacity = 0;
 }
 document.body.appendChild(i);
-

@@ -7,8 +7,8 @@ module.exports = [
     name: 'test-image-resize',
     entry: './test/app.js',
     output: {
-      path: path.join(__dirname, 'public/assets'),
-      publicPath: 'assets',
+      path: path.join(__dirname, 'public'),
+      publicPath: '/',
       filename: 'app.js'
     },
     resolve: {

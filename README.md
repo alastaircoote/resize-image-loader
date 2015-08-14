@@ -4,6 +4,17 @@
 
 Resize-image-loader will create responsive images using webpack and [gm](http://aheckmann.github.io/gm/) so only the most effecient image is downloaded for the user's device. Modern browser have an additional attibute on the `img` tag called `srcset`. If `srcset` is supported the browser will use the device's screensize and pixel density to determine the best image to download. Older browsers will default back to the normal `src` image.  This will greatly improve page load times and time to first render while reducing the cost for the user<sup>[2][cost-site]</sup>.
 
+## Sample Metrics
+Check out the test folder for a sample use case. Below is the render times with the full image vs a responsive one and a placeholder image.
+
+
+| image size | time to render on 3G connection |
+| ------------- | ------------- |
+| placeholder image (inlined & blurred) | 300 ms |
+| 900 px width image (resized & optimized srcset) | 5,00 ms |
+| regular image | 24,000 ms |
+
+
 ## Basic Usage
 
 [Documentation: Using loaders](http://webpack.github.io/docs/using-loaders.html)
@@ -26,7 +37,7 @@ render(){
 
 Optionally you make also create a placeholder image. Placeholder images are tiny images that are inlined and blurred until the hi-res image is loaded. This delivers a fully rendered experince to the user as quick as possible without empty boxes or jumpy reflow/layouts. [See facebook's write up for futher details.](https://code.facebook.com/posts/991252547593574/the-technology-behind-preview-photos)
 
-The code below has one `img` using the placeholder image, which is inlined as a datauri. This will load right away and take up minimal space on the inital download (generally < 5Kb). The second image is the normal image. The user's browser will then choose the optimal image and download that one instead of the src. Once the full image loads, the onLoad handler will trigger a state change and have an animated cross fade between the blured placeholder image and the real hi-res image.
+The code below has one `img` using the placeholder image, which is inlined as a datauri. This will load right away and take up minimal space on the inital download (the sample project placeholder is 1.5K gzipped). The second image is the normal image. The user's browser will then choose the optimal image and download that one instead of the src. Once the full image loads, the onLoad handler will trigger a state change and have an animated cross fade between the blured placeholder image and the real hi-res image.
 
 ``` javascript
 var imgset = require('resize-image?sizes[]=200w,sizes[]=900w!./myImage.jpg');
@@ -56,8 +67,8 @@ render(){
 
 *placeholder* options.  
 
-`placeholder=<image-width>` default _200_  
-`blur=<gaussian-blur-amount>` default _10_  
+`placeholder=<image-width>` default _20_  
+`blur=<gaussian-blur-amount>` default _40_  
 
 * To also compress images combine [resize-image-loader](https://github.com/Levelmoney/resize-image-loader) with the [image-webpack-loader](https://github.com/tcoopman/image-webpack-loader)
 ```

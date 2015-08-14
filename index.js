@@ -3,6 +3,50 @@ var Datauri = require('datauri');
 var fs = require('fs');
 var loaderUtils = require('loader-utils');
 
+var defaultSizes = ['320w','960w','2048w'];
+var defaultBlur = 40;
+var defaultPlaceholderSize = 20;
+
+function createPlaceholder(content, placeholder, ext, blur, callback){
+  var size = null;
+  gm(content)
+    .resize(placeholder)
+    .size(function(err, _size){ size = _size; })
+    .toBuffer(ext, function(err, buf){
+      if (!buf) return; 
+
+      var uri = new Datauri().format('.'+ext, buf).content;
+      var blur =  "<svg xmlns='http://www.w3.org/2000/svg' width='100%' viewBox='0 0 " + size.width + " " + size.height + "'>" + 
+                    "<defs><filter id='puppybits'><feGaussianBlur in='SourceGraphic' stdDeviation='" + defaultBlur + "'/></filter></defs>" +
+                    "<image width='100%' height='100%' xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='" + uri + "' filter='url(#puppybits)'></image>" +
+                  "</svg>";
+      var micro = new Datauri().format('.svg', new Buffer(blur, 'utf8')).content; 
+      callback(null, "module.exports = \""+micro+"\"");  
+  });
+}
+
+function createResponsiveImages(content, sizes, ext, files, emitFile, callback){
+  var count = 0;
+  var images = [];
+  var imgset = files.map(function(file, i){ return file + ' ' + sizes[i] + ' '; }).join(',');
+  sizes.map(function(size, i){
+    size = parseInt(size);
+    gm(content)
+      .resize(size)
+      .toBuffer(ext, function(err, buf){
+        if (buf){
+          images[i] = buf;
+          emitFile(files[i], buf);
+        }
+        
+        count++;
+        if (count >= files.length) {
+          callback(null, "module.exports = \""+imgset+"\"");  
+        }    
+    });
+  });
+}
+
 module.exports = function(content) {
   var idx = this.loaderIndex;
 
@@ -12,18 +56,10 @@ module.exports = function(content) {
   var query = (this.query !== '' ? this.query : this.loaders[0].query);
   query = loaderUtils.parseQuery(query);
 
-  if (!query.sizes && !query.placeholder) {
-    query = {sizes:['320w','960w','2048w']};
-  }
+  query.sizes = (!Array.isArray(query.sizes) && [sizes]) || query.sizes || defaultSizes;
   
-  if (!Array.isArray(query.sizes)) {
-    query.sizes = [sizes];
-  }
-
-  var callback = this.async(), called = false;
-
+  var callback = this.async();
   if(!this.emitFile) throw new Error("emitFile is required from module system");
-  var emitFile = this.emitFile;
   this.cacheable && this.cacheable();
   this.addDependency(this.resourcePath);
 
@@ -34,57 +70,18 @@ module.exports = function(content) {
     var paths = this.resourcePath.split('/');
     var name = paths[paths.length - 1].split('.')[0];
     var ext = paths[paths.length - 1].split('.')[1];
-    var sizes = query.sizes.map(function(s){ 
-      return s;
-    });
-    var files = sizes.map(function(size, i){
-      return name + '-' + size + '.' + ext;
-    });
-    var imgset = files.map(function(file, i){
-      return file + ' ' + sizes[i] + ' ';
-    }).join(',');
+    var sizes = query.sizes.map(function(s){ return s; });
+    var files = sizes.map(function(size, i){ return name + '-' + size + '.' + ext; });
 
-    if (query.placeholder){
-      query.placeholder = (query.placeholder > 5 ? query.placeholder : 200);
-      if (!query.blur) {
-        query.blur = 40;
-      }
-      var size = null;
-      gm(content)
-        .size(function(err, _size){ size = _size; })
-        .resize(Math.max(query.placeholder, 20))
-        .toBuffer(ext, function(err, buf){
-          if (buf){
-            var uri = new Datauri().format('.'+ext, buf).content;
-            var blur =  "<svg xmlns='http://www.w3.org/2000/svg' width='100%' viewBox='0 0 "+size.width+" "+size.height+"'>" + 
-                          "<defs><filter id='puppybits'><feGaussianBlur stdDeviation='"+query.blur+"'/></filter></defs>" +
-                          "<image width='100%' height='100%' xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='" + uri + "' filter='url(#puppybits)'></image>" +
-                        "</svg>";
-            var micro = new Datauri().format('.svg', new Buffer(blur, 'utf8')).content; 
-            callback(null, "module.exports = \""+micro+"\"");  
-            called = true;
-          }
-      });
+    if (query.placeholder) {
+      query.placeholder = parseInt(query.placeholder) || defaultPlaceholderSize;
+      query.blur = query.blur || defaultBlur;
+
+      createPlaceholder(content, query.placeholder, ext, query.blur, callback);
     } else /* return srcset*/ {
-      var count = 0;
-      var images = [];
-      sizes.map(function(size, i){
-        size = parseInt(size);
-        gm(content)
-          .resize(size)
-          .toBuffer(ext, function(err, buf){
-            if (buf){
-              images[i] = buf;
-              emitFile(files[i], buf);
-            }
-            
-            count++;
-            if (count >= files.length){
-              callback(null, "module.exports = \""+imgset+"\"");  
-              called = true;
-            }    
-        });
-      });
+
+      var emitFile = this.emitFile;
+      createResponsiveImages(content, sizes, ext, files, emitFile, callback);
     }
   }
 };
