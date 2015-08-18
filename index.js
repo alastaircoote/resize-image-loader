@@ -13,36 +13,53 @@ function createPlaceholder(content, placeholder, ext, blur, callback){
     .resize(placeholder)
     .size(function(err, _size){ size = _size; })
     .toBuffer(ext, function(err, buf){
-      if (!buf) return; 
+      if (!buf) return;
 
       var uri = new Datauri().format('.'+ext, buf).content;
-      var blur =  "<svg xmlns='http://www.w3.org/2000/svg' width='100%' viewBox='0 0 " + size.width + " " + size.height + "'>" + 
+      var blur =  "<svg xmlns='http://www.w3.org/2000/svg' width='100%' viewBox='0 0 " + size.width + " " + size.height + "'>" +
                     "<defs><filter id='puppybits'><feGaussianBlur in='SourceGraphic' stdDeviation='" + defaultBlur + "'/></filter></defs>" +
                     "<image width='100%' height='100%' xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='" + uri + "' filter='url(#puppybits)'></image>" +
                   "</svg>";
-      var micro = new Datauri().format('.svg', new Buffer(blur, 'utf8')).content; 
-      callback(null, "module.exports = \""+micro+"\"");  
+      var micro = new Datauri().format('.svg', new Buffer(blur, 'utf8')).content;
+      callback(null, "module.exports = \""+micro+"\"");
   });
 }
 
-function createResponsiveImages(content, sizes, ext, files, emitFile, callback){
+function createResponsiveImages(content, sizes, ext, files, emitFile, addProportion, callback){
   var count = 0;
   var images = [];
-  var imgset = files.map(function(file, i){ return file + ' ' + sizes[i] + ' '; }).join(',');
+
   sizes.map(function(size, i){
     size = parseInt(size);
+    var originalSize = null;
     gm(content)
+      .size(function(err,size) {
+          originalSize = size;
+      })
       .resize(size)
       .toBuffer(ext, function(err, buf){
         if (buf){
           images[i] = buf;
           emitFile(files[i], buf);
         }
-        
+
         count++;
         if (count >= files.length) {
-          callback(null, "module.exports = \""+imgset+"\"");  
-        }    
+          var imgset = files.map(function(file, i){
+              var filenames = file + ' ' + sizes[i] + ' ';
+              if (addProportion) {
+                  return JSON.stringify({
+                      srcset: filenames,
+                      proportion: originalSize.height / originalSize.width
+                  })
+              }
+              return filenames;
+          }).join(',');
+          if (!addProportion) {
+              imgset = "\"" + imgset + "\"";
+          }
+          callback(null, "module.exports = "+imgset+"");
+        }
     });
   });
 }
@@ -57,7 +74,7 @@ module.exports = function(content) {
   query = loaderUtils.parseQuery(query);
 
   query.sizes = (!Array.isArray(query.sizes) && [sizes]) || query.sizes || defaultSizes;
-  
+
   var callback = this.async();
   if(!this.emitFile) throw new Error("emitFile is required from module system");
   this.cacheable && this.cacheable();
@@ -81,7 +98,7 @@ module.exports = function(content) {
     } else /* return srcset*/ {
 
       var emitFile = this.emitFile;
-      createResponsiveImages(content, sizes, ext, files, emitFile, callback);
+      createResponsiveImages(content, sizes, ext, files, emitFile, query.proportion, callback);
     }
   }
 };
