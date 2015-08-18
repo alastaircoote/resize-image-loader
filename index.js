@@ -28,6 +28,7 @@ function createPlaceholder(content, placeholder, ext, blur, callback){
 function createResponsiveImages(content, sizes, ext, files, emitFile, addProportion, callback){
   var count = 0;
   var images = [];
+  var imgset = files.map(function(file, i){ return file + ' ' + sizes[i] + ' '; }).join(',');
 
   sizes.map(function(size, i){
     size = parseInt(size);
@@ -45,20 +46,14 @@ function createResponsiveImages(content, sizes, ext, files, emitFile, addProport
 
         count++;
         if (count >= files.length) {
-          var imgset = files.map(function(file, i){
-              var filenames = file + ' ' + sizes[i] + ' ';
-              if (addProportion) {
-                  return JSON.stringify({
-                      srcset: filenames,
-                      proportion: originalSize.height / originalSize.width
-                  })
-              }
-              return filenames;
-          }).join(',');
+        
           if (!addProportion) {
-              imgset = "\"" + imgset + "\"";
+              callback(null, "module.exports = \""+imgset+"\"");
+          } else {
+              var proportion = originalSize.height / originalSize.width;
+              callback(null, "module.exports = "+ JSON.stringify({srcset: imgset, proportion: proportion}));
           }
-          callback(null, "module.exports = "+imgset+"");
+
         }
     });
   });
